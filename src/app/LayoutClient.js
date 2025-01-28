@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ImageProvider } from "@/context/ImageProvider";
-import { AuroraText } from "@/components/ui/AuroraText";
-import { FlickeringGrid } from "@/components/magicui/flickering-grid";
+import { ImageProvider } from "../context/ImageProvider";
+import { AuroraText } from "../components/ui/AuroraText";
+import { FlickeringGrid } from "../components/magicui/flickering-grid";
 
 import {
   Bars3Icon,
@@ -16,15 +16,13 @@ import {
   PhotoIcon,
   VideoCameraIcon,
   MusicalNoteIcon,
-  BuildingOfficeIcon,
   PuzzlePieceIcon,
-  SwatchIcon,         // For "Color" icon
-  ChevronRightIcon,   // Arrow icon for sub-menus
+  SwatchIcon,
+  CurrencyDollarIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 // TOP-LEVEL NAV
-// - Images has subItems
-// - Color has subItems: Palettes & Variations
 const topLevelNav = [
   {
     name: "Home",
@@ -36,12 +34,12 @@ const topLevelNav = [
     href: "#",
     icon: PhotoIcon,
     subItems: [
-      { name: "Compress", href: "/compress" },
-      { name: "Resize", href: "/resize" },
-      { name: "Convert", href: "/convert" },
-      { name: "Remove BG", href: "/remove-bg" },
-      { name: "Favicons", href: "/favicons" },
-      { name: "App Icon", href: "/app-icon" },
+      { name: "Compress", href: "/images/compress" },
+      { name: "Resize", href: "/images/resize" },
+      { name: "Convert", href: "/images/convert" },
+      { name: "Remove BG", href: "/images/remove-bg" },
+      { name: "Favicons", href: "/images/favicons" },
+      { name: "App Icon", href: "/images/app-icon" },
     ],
   },
   {
@@ -58,20 +56,38 @@ const topLevelNav = [
     href: "/apps",
     icon: PuzzlePieceIcon,
   },
+  // New "Videos" top-level
   {
-    name: "Videos",
+    name: "Video",
     href: "#",
     icon: VideoCameraIcon,
+    subItems: [
+      { name: "Compress", href: "/video/compress" },
+      { name: "Convert", href: "/video/convert" },
+      { name: "Resize", href: "/video/resize" },
+      { name: "Transfer", href: "/video/transfer" },
+    ],
   },
+  // New "Audio" top-level
   {
     name: "Audio",
     href: "#",
     icon: MusicalNoteIcon,
+    subItems: [
+      { name: "Compress", href: "/audio/compress" },
+      { name: "Convert", href: "/audio/convert" },
+      { name: "Resize", href: "/audio/resize" },
+      { name: "Frequency", href: "/audio/frequency" },
+    ],
   },
   {
-    name: "Real Estate",
+    name: "Finance",
     href: "#",
-    icon: BuildingOfficeIcon,
+    icon: CurrencyDollarIcon,
+    subItems: [
+      { name: "Compound Interest", href: "/finance/compound-interest" },
+      { name: "Income Tax", href: "/finance/income-tax" },
+    ],
   },
 ];
 
@@ -80,9 +96,9 @@ export default function LayoutClient({ children }) {
   const [darkMode, setDarkMode] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Desktop “hover” for sub-menu
+  // For desktop “hover” second column
   const [activeIndex, setActiveIndex] = useState(-1);
-  // Mobile “click to expand”
+  // For mobile “click to expand”
   const [expandedIndex, setExpandedIndex] = useState(-1);
 
   const pathname = usePathname();
@@ -104,7 +120,7 @@ export default function LayoutClient({ children }) {
     localStorage.setItem("nocabotDarkMode", nextVal ? "true" : "false");
   };
 
-  if (!initialized) return null; // avoid mismatch
+  if (!initialized) return null;
 
   const handleMobileExpand = (idx) => {
     setExpandedIndex((prev) => (prev === idx ? -1 : idx));
@@ -129,9 +145,9 @@ export default function LayoutClient({ children }) {
           </Link>
         </div>
 
-        {/* DESKTOP SIDEBAR + 2ND COLUMN + MAIN */}
+        {/* DESKTOP LAYOUT: SIDEBAR + 2ND COLUMN + MAIN */}
         <div className="relative flex flex-1">
-          {/* Flickering background */}
+          {/* Flickering grid background */}
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="w-full h-full opacity-20">
               <FlickeringGrid
@@ -161,7 +177,7 @@ export default function LayoutClient({ children }) {
               {topLevelNav.map((item, idx) => {
                 const Icon = item.icon;
                 const hasSub = !!item.subItems?.length;
-                // active if direct match or any sub route is active
+                // active if sub link or direct link
                 const isActive = hasSub
                   ? item.subItems.some((sub) => sub.href === pathname)
                   : item.href === pathname;
@@ -195,7 +211,7 @@ export default function LayoutClient({ children }) {
               })}
             </nav>
 
-            {/* Dark Mode button */}
+            {/* Dark Mode */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
               <button
                 onClick={toggleDarkMode}
@@ -207,7 +223,7 @@ export default function LayoutClient({ children }) {
             </div>
           </aside>
 
-          {/* FLOATING 2ND COLUMN (desktop hover) */}
+          {/* SECOND COLUMN (desktop hover) */}
           {activeIndex > -1 &&
             topLevelNav[activeIndex].subItems &&
             topLevelNav[activeIndex].subItems.length > 0 && (
@@ -243,11 +259,9 @@ export default function LayoutClient({ children }) {
               </aside>
             )}
 
-          {/* MAIN CONTENT (centered container) */}
+          {/* MAIN CONTENT */}
           <main className="flex-1 overflow-auto bg-white dark:bg-gray-900 transition-colors">
-            <div className="mx-auto w-[90%] max-w-4xl py-6">
-              {children}
-            </div>
+            {children}
           </main>
         </div>
 
@@ -280,13 +294,10 @@ export default function LayoutClient({ children }) {
                   const Icon = item.icon;
                   const hasSub = !!item.subItems?.length;
                   const isExpanded = expandedIndex === idx;
-
-                  // active if direct or sub link matches
                   const isActive = hasSub
                     ? item.subItems.some((sub) => sub.href === pathname)
                     : item.href === pathname;
 
-                  // If no subItems, link directly
                   if (!hasSub) {
                     return (
                       <Link
@@ -305,7 +316,6 @@ export default function LayoutClient({ children }) {
                       </Link>
                     );
                   } else {
-                    // has subItems => expand/collapse
                     return (
                       <div key={item.name}>
                         <div
@@ -322,12 +332,9 @@ export default function LayoutClient({ children }) {
                             <span>{item.name}</span>
                           </div>
                           <ChevronRightIcon
-                            className={`h-4 w-4 transition-transform
-                              ${isExpanded ? "rotate-90" : ""}
-                            `}
+                            className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
                           />
                         </div>
-                        {/* Sub-items if expanded */}
                         {isExpanded && (
                           <div className="ml-8 border-l border-gray-100 dark:border-gray-800">
                             {item.subItems.map((sub) => {
