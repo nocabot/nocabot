@@ -4,14 +4,15 @@ import React, { useRef, useState } from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 
 /**
- * Single-audio-file uploader with a plus icon in the empty state.
+ * Single-video-file uploader with plus icon in the empty state.
+ * Accepts "video/*" and only one file.
  */
-export default function GlobalAudioUploader({
+export default function GlobalVideoUploader({
   didProcess,
   onDownloadOne,
-  onNewAudio,
+  onNewVideo,
 }) {
-  const [audioFile, setAudioFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleClick = () => {
@@ -21,8 +22,8 @@ export default function GlobalAudioUploader({
   const handleChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAudioFile(file);
-      onNewAudio?.();
+      setVideoFile(file);
+      onNewVideo?.();
     }
   };
 
@@ -31,8 +32,8 @@ export default function GlobalAudioUploader({
     e.stopPropagation();
     const dropped = e.dataTransfer.files?.[0];
     if (dropped) {
-      setAudioFile(dropped);
-      onNewAudio?.();
+      setVideoFile(dropped);
+      onNewVideo?.();
     }
   };
 
@@ -40,8 +41,8 @@ export default function GlobalAudioUploader({
 
   const handleRemove = (ev) => {
     ev.stopPropagation();
-    setAudioFile(null);
-    onNewAudio?.();
+    setVideoFile(null);
+    onNewVideo?.();
   };
 
   return (
@@ -58,18 +59,18 @@ export default function GlobalAudioUploader({
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      {!audioFile && (
+      {!videoFile && (
         <div className="pointer-events-none flex flex-col items-center justify-center text-center">
           <PlusIcon className="h-10 w-10 text-[#0984e3]" />
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Drag &amp; Drop or Click to Upload
             <br />
-            (Single audio file)
+            (Single video file)
           </p>
         </div>
       )}
 
-      {audioFile && (
+      {videoFile && (
         <div
           className="
             pointer-events-auto relative
@@ -94,7 +95,7 @@ export default function GlobalAudioUploader({
             &times;
           </button>
           <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-            {audioFile.name}
+            {videoFile.name}
           </p>
 
           {didProcess && (
@@ -118,7 +119,7 @@ export default function GlobalAudioUploader({
 
       <input
         type="file"
-        accept="audio/*"
+        accept="video/*"
         ref={fileInputRef}
         className="hidden"
         onChange={handleChange}
