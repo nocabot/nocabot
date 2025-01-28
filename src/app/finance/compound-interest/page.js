@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import { AuroraText } from "../../../components/ui/AuroraText";
 
@@ -9,32 +18,45 @@ import { AuroraText } from "../../../components/ui/AuroraText";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function CompoundInterestPage() {
-  // Form inputs
   const [principal, setPrincipal] = useState("");
   const [annualAdd, setAnnualAdd] = useState("");
   const [years, setYears] = useState("");
   const [rate, setRate] = useState("");
-  const [times, setTimes] = useState(""); // number of contributions per year
-  const [addAtStart, setAddAtStart] = useState(true); // radio
+  const [times, setTimes] = useState("");
+  const [addAtStart, setAddAtStart] = useState(true);
 
   const [futureValue, setFutureValue] = useState(null);
   const [chartData, setChartData] = useState(null);
 
-  // Validate numeric input
-  const handleNumericChange = (setter) => (e) => {
-    const val = e.target.value.replace(/[^\d.]/g, ""); // keep only digits & dot
-    setter(val);
+  // Format typed money input with commas
+  const formatMoneyInput = (setter) => (e) => {
+    let raw = e.target.value.replace(/[^\d.]/g, "");
+    if (!raw) {
+      setter("");
+      return;
+    }
+    const parts = raw.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    setter(parts.join("."));
+  };
+
+  // Format typed percent (no commas needed, but keep only digits/dot)
+  const formatPercentInput = (e) => {
+    let raw = e.target.value.replace(/[^\d.]/g, "");
+    if (!raw) raw = "";
+    setRate(raw);
   };
 
   const handleCalculate = () => {
-    const p = parseFloat(principal) || 0;
-    const a = parseFloat(annualAdd) || 0;
+    // parse numeric
+    const p = parseFloat(principal.replace(/,/g, "")) || 0;
+    const a = parseFloat(annualAdd.replace(/,/g, "")) || 0;
     const y = parseInt(years) || 0;
     const r = parseFloat(rate) || 0;
     const c = parseInt(times) || 0;
 
     if (y <= 0 || r < 0 || c <= 0) {
-      alert("Please enter valid numbers (years > 0, rate >= 0, contributions >= 1).");
+      alert("Check numeric inputs: years>0, rate>=0, contributions>=1.");
       return;
     }
 
@@ -43,20 +65,16 @@ export default function CompoundInterestPage() {
     const balances = [];
 
     for (let year = 0; year <= y; year++) {
-      // record at start of year
       labels.push(`Year ${year}`);
       balances.push(current);
 
       if (year === y) break;
 
-      // c times per year
       for (let i = 0; i < c; i++) {
         if (addAtStart) {
           current += a;
         }
-        // interest portion
         current *= 1 + (r / 100) / c;
-
         if (!addAtStart) {
           current += a;
         }
@@ -71,7 +89,7 @@ export default function CompoundInterestPage() {
         {
           label: "Balance Over Time",
           data: balances,
-          borderColor: "#4f46e5", // Indigo-600
+          borderColor: "#4f46e5",
           backgroundColor: "rgba(79,70,229,0.1)",
           pointRadius: 3,
         },
@@ -97,37 +115,37 @@ export default function CompoundInterestPage() {
         Compound Interest
       </h1>
       <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-        Calculate your future value with regular contributions and compounding.  
+        Enter your details and choose a compounding frequency. Rate is annual in %.
       </p>
 
       {/* FORM */}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Principal */}
-        <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200 relative">
+        <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200">
           <label className="font-medium">Current Principal:</label>
           <div className="mt-1 relative">
-            <span className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-500">$</span>
+            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">$</span>
             <input
               type="text"
               value={principal}
-              onChange={handleNumericChange(setPrincipal)}
+              onChange={formatMoneyInput(setPrincipal)}
               className="pl-7 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
-              placeholder="10000"
+              placeholder="10,000"
             />
           </div>
         </div>
 
         {/* Annual Addition */}
-        <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200 relative">
+        <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200">
           <label className="font-medium">Annual Addition:</label>
           <div className="mt-1 relative">
-            <span className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-500">$</span>
+            <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">$</span>
             <input
               type="text"
               value={annualAdd}
-              onChange={handleNumericChange(setAnnualAdd)}
+              onChange={formatMoneyInput(setAnnualAdd)}
               className="pl-7 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
-              placeholder="5000"
+              placeholder="5,000"
             />
           </div>
         </div>
@@ -136,42 +154,42 @@ export default function CompoundInterestPage() {
         <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200">
           <label className="font-medium">Years to Grow:</label>
           <input
-            type="text"
+            type="number"
             value={years}
-            onChange={handleNumericChange(setYears)}
+            onChange={(e) => setYears(e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
             placeholder="30"
           />
         </div>
 
-        {/* Interest Rate */}
+        {/* Interest Rate (with % inline) */}
         <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200 relative">
-          <label className="font-medium">Interest Rate (%):</label>
+          <label className="font-medium">Interest Rate:</label>
           <div className="mt-1 relative">
-            <span className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-500">%</span>
             <input
               type="text"
               value={rate}
-              onChange={handleNumericChange(setRate)}
-              className="pl-7 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
+              onChange={formatPercentInput}
+              className="pr-7 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
               placeholder="7"
             />
+            <span className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500">%</span>
           </div>
         </div>
 
-        {/* Number of contributions per year */}
+        {/* Number of times */}
         <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200">
-          <label className="font-medium">Number of contributions a year:</label>
+          <label className="font-medium">Contributions per Year:</label>
           <input
-            type="text"
+            type="number"
             value={times}
-            onChange={handleNumericChange(setTimes)}
+            onChange={(e) => setTimes(e.target.value)}
             className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 shadow-sm"
             placeholder="1"
           />
         </div>
 
-        {/* Additions at start/end, prettified */}
+        {/* Add at start/end */}
         <div className="flex flex-col text-sm text-gray-700 dark:text-gray-200">
           <label className="font-medium mb-1">Make additions at:</label>
           <div className="flex items-center gap-4">
@@ -205,7 +223,7 @@ export default function CompoundInterestPage() {
         </div>
       </div>
 
-      {/* BUTTONS */}
+      {/* Action Buttons */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
         <button
           onClick={handleCalculate}
@@ -221,7 +239,7 @@ export default function CompoundInterestPage() {
         </button>
       </div>
 
-      {/* RESULT */}
+      {/* Result */}
       {futureValue !== null && (
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-300">Future Value:</p>
@@ -231,7 +249,7 @@ export default function CompoundInterestPage() {
         </div>
       )}
 
-      {/* CHART: fully responsive with dynamic resizing */}
+      {/* Chart */}
       {chartData && (
         <div className="mt-8 w-full" style={{ minHeight: "400px" }}>
           <div className="relative h-[400px] w-full">
