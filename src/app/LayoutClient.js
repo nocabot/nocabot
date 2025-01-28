@@ -22,7 +22,7 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-// TOP-LEVEL NAV
+// Adjust your topLevelNav as you like
 const topLevelNav = [
   {
     name: "Home",
@@ -56,7 +56,6 @@ const topLevelNav = [
     href: "/apps",
     icon: PuzzlePieceIcon,
   },
-  // New "Videos" top-level
   {
     name: "Video",
     href: "#",
@@ -68,7 +67,6 @@ const topLevelNav = [
       { name: "Transfer", href: "/video/transfer" },
     ],
   },
-  // New "Audio" top-level
   {
     name: "Audio",
     href: "#",
@@ -96,9 +94,7 @@ export default function LayoutClient({ children }) {
   const [darkMode, setDarkMode] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // For desktop “hover” second column
   const [activeIndex, setActiveIndex] = useState(-1);
-  // For mobile “click to expand”
   const [expandedIndex, setExpandedIndex] = useState(-1);
 
   const pathname = usePathname();
@@ -122,10 +118,6 @@ export default function LayoutClient({ children }) {
 
   if (!initialized) return null;
 
-  const handleMobileExpand = (idx) => {
-    setExpandedIndex((prev) => (prev === idx ? -1 : idx));
-  };
-
   return (
     <ImageProvider>
       <div className="flex min-h-screen w-full flex-col text-gray-800 dark:text-gray-200">
@@ -145,9 +137,9 @@ export default function LayoutClient({ children }) {
           </Link>
         </div>
 
-        {/* DESKTOP LAYOUT: SIDEBAR + 2ND COLUMN + MAIN */}
+        {/* DESKTOP SIDEBAR + MAIN */}
         <div className="relative flex flex-1">
-          {/* Flickering grid background */}
+          {/* Flickering grid */}
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="w-full h-full opacity-20">
               <FlickeringGrid
@@ -161,23 +153,19 @@ export default function LayoutClient({ children }) {
             </div>
           </div>
 
-          {/* LEFT SIDEBAR (desktop) */}
-          <aside className="hidden md:flex md:flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 w-48 transition-colors">
-            {/* Brand */}
-            <div className="p-4 flex items-center justify-center border-b border-gray-100 dark:border-gray-800">
+          {/* LEFT SIDEBAR (Desktop) */}
+          <aside className="hidden md:flex md:flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 w-48">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-center">
               <Link href="/">
                 <AuroraText className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
                   Nocabot
                 </AuroraText>
               </Link>
             </div>
-
-            {/* Top-level nav */}
             <nav className="flex-1 overflow-y-auto">
               {topLevelNav.map((item, idx) => {
                 const Icon = item.icon;
-                const hasSub = !!item.subItems?.length;
-                // active if sub link or direct link
+                const hasSub = !!item.subItems;
                 const isActive = hasSub
                   ? item.subItems.some((sub) => sub.href === pathname)
                   : item.href === pathname;
@@ -193,8 +181,8 @@ export default function LayoutClient({ children }) {
                       href={item.href !== "#" ? item.href : "/"}
                       className={`
                         flex items-center justify-between gap-2 px-4 py-3
-                        transition-colors
                         hover:bg-gray-50 dark:hover:bg-gray-800
+                        transition-colors
                         ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
                       `}
                     >
@@ -202,16 +190,12 @@ export default function LayoutClient({ children }) {
                         <Icon className="h-5 w-5" />
                         <span>{item.name}</span>
                       </div>
-                      {hasSub && (
-                        <ChevronRightIcon className="h-4 w-4 opacity-60" />
-                      )}
+                      {hasSub && <ChevronRightIcon className="h-4 w-4 opacity-60" />}
                     </Link>
                   </div>
                 );
               })}
             </nav>
-
-            {/* Dark Mode */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
               <button
                 onClick={toggleDarkMode}
@@ -223,13 +207,12 @@ export default function LayoutClient({ children }) {
             </div>
           </aside>
 
-          {/* SECOND COLUMN (desktop hover) */}
+          {/* HOVER 2ND COLUMN */}
           {activeIndex > -1 &&
             topLevelNav[activeIndex].subItems &&
             topLevelNav[activeIndex].subItems.length > 0 && (
               <aside
-                className="z-50 absolute top-0 left-48 bottom-0 w-56 bg-white dark:bg-gray-900 shadow-xl dark:shadow-black/50 transition-all
-                           rounded-r-md overflow-y-auto hidden md:flex md:flex-col"
+                className="z-50 absolute top-0 left-48 bottom-0 w-56 bg-white dark:bg-gray-900 shadow-xl dark:shadow-black/50 rounded-r-md overflow-y-auto hidden md:flex md:flex-col"
                 onMouseEnter={() => setActiveIndex(activeIndex)}
                 onMouseLeave={() => setActiveIndex(-1)}
               >
@@ -259,8 +242,14 @@ export default function LayoutClient({ children }) {
               </aside>
             )}
 
-          {/* MAIN CONTENT */}
-          <main className="flex-1 overflow-auto bg-white dark:bg-gray-900 transition-colors">
+          {/* MAIN CONTENT: 90% width even on mobile */}
+          <main
+            className="
+              w-[90%] mx-auto p-4
+              flex-1 overflow-auto
+              bg-white dark:bg-gray-900 transition-colors
+            "
+          >
             {children}
           </main>
         </div>
@@ -268,13 +257,8 @@ export default function LayoutClient({ children }) {
         {/* MOBILE OFF-CANVAS SIDEBAR */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 flex md:hidden">
-            {/* Overlay */}
-            <div
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setMobileMenuOpen(false)}
-            />
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
             <div className="relative w-64 max-w-full bg-white dark:bg-gray-900 flex flex-col shadow-xl dark:shadow-black/50">
-              {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
                 <AuroraText className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
                   Nocabot
@@ -287,12 +271,10 @@ export default function LayoutClient({ children }) {
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-
-              {/* Mobile nav */}
               <nav className="flex-1 overflow-y-auto">
                 {topLevelNav.map((item, idx) => {
                   const Icon = item.icon;
-                  const hasSub = !!item.subItems?.length;
+                  const hasSub = !!item.subItems;
                   const isExpanded = expandedIndex === idx;
                   const isActive = hasSub
                     ? item.subItems.some((sub) => sub.href === pathname)
@@ -325,7 +307,7 @@ export default function LayoutClient({ children }) {
                             transition-colors
                             ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
                           `}
-                          onClick={() => setExpandedIndex((prev) => (prev === idx ? -1 : idx))}
+                          onClick={() => setExpandedIndex(isExpanded ? -1 : idx)}
                         >
                           <div className="flex items-center gap-2">
                             <Icon className="h-5 w-5" />
@@ -366,12 +348,14 @@ export default function LayoutClient({ children }) {
                   }
                 })}
               </nav>
-
-              {/* Dark mode on mobile */}
               <div className="p-4 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={toggleDarkMode}
-                  className="w-full flex items-center justify-center gap-2 rounded-md bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full flex items-center justify-center gap-2
+                    rounded-md bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm font-semibold
+                    text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700
+                    transition-colors
+                  "
                 >
                   {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
                   <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
