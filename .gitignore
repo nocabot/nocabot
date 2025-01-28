@@ -1,0 +1,38 @@
+# macOS system files
+.DS_Store
+
+# Node modules
+node_modules/
+
+# Yarn / npm lockfiles (optional — if you only use one package manager, ignore the other)
+# yarn.lock
+# package-lock.json
+
+# Next.js build output
+.next/
+out/
+dist/
+
+# Production logs and local debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Local IDE settings
+.vscode/
+
+# Optional: coverage output from testing
+coverage/
+
+# Optional: TypeScript build output
+*.tsbuildinfo
+
+# Optional: ignore files for PM2/Process management
+pm2.log
+pm2.pid
