@@ -2,160 +2,92 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  HomeIcon,
-  ArrowsPointingInIcon,
-  ScissorsIcon,
-  ArrowsRightLeftIcon,
-  PhotoIcon,
-  GlobeAltIcon,
-  DevicePhoneMobileIcon,
-  FaceSmileIcon,
-  InformationCircleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  MoonIcon,
-  SunIcon,
-} from "@heroicons/react/24/outline";
-
+import { usePathname } from "next/navigation";
 import { ImageProvider } from "@/context/ImageProvider";
 import { AuroraText } from "@/components/ui/AuroraText";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 
-// MAIN NAV
-const featuresNav = [
-  { name: "Home", href: "/", icon: <HomeIcon className="h-6 w-6" /> },
-  { name: "Compress", href: "/compress", icon: <ArrowsPointingInIcon className="h-6 w-6" /> },
-  { name: "Resize", href: "/resize", icon: <ScissorsIcon className="h-6 w-6" /> },
-  { name: "Convert", href: "/convert", icon: <ArrowsRightLeftIcon className="h-6 w-6" /> },
-  { name: "Remove BG", href: "/remove-bg", icon: <PhotoIcon className="h-6 w-6" /> },
+import {
+  Bars3Icon,
+  XMarkIcon,
+  MoonIcon,
+  SunIcon,
+  HomeIcon,
+  PhotoIcon,
+  VideoCameraIcon,
+  MusicalNoteIcon,
+  BuildingOfficeIcon,
+  PuzzlePieceIcon,
+  SwatchIcon,         // For "Color" icon
+  ChevronRightIcon,   // Arrow icon for sub-menus
+} from "@heroicons/react/24/outline";
+
+// TOP-LEVEL NAV
+// - Images has subItems
+// - Color has subItems: Palettes & Variations
+const topLevelNav = [
+  {
+    name: "Home",
+    href: "/",
+    icon: HomeIcon,
+  },
+  {
+    name: "Images",
+    href: "#",
+    icon: PhotoIcon,
+    subItems: [
+      { name: "Compress", href: "/compress" },
+      { name: "Resize", href: "/resize" },
+      { name: "Convert", href: "/convert" },
+      { name: "Remove BG", href: "/remove-bg" },
+      { name: "Favicons", href: "/favicons" },
+      { name: "App Icon", href: "/app-icon" },
+    ],
+  },
+  {
+    name: "Color",
+    href: "#",
+    icon: SwatchIcon,
+    subItems: [
+      { name: "Palettes", href: "/color/palettes" },
+      { name: "Variations", href: "/color/variations" },
+    ],
+  },
+  {
+    name: "Apps",
+    href: "/apps",
+    icon: PuzzlePieceIcon,
+  },
+  {
+    name: "Videos",
+    href: "#",
+    icon: VideoCameraIcon,
+  },
+  {
+    name: "Audio",
+    href: "#",
+    icon: MusicalNoteIcon,
+  },
+  {
+    name: "Real Estate",
+    href: "#",
+    icon: BuildingOfficeIcon,
+  },
 ];
 
-// SPECIALTY
-const specialtyNav = [
-  { name: "Favicons", href: "/favicons", icon: <GlobeAltIcon className="h-6 w-6" /> },
-  { name: "App Icon", href: "/app-icon", icon: <DevicePhoneMobileIcon className="h-6 w-6" /> },
-  { name: "Meme Maker", href: "/meme", icon: <FaceSmileIcon className="h-6 w-6" /> },
-];
-
-// OTHER
-const otherNav = [
-  { name: "About", href: "/about", icon: <InformationCircleIcon className="h-6 w-6" /> },
-];
-
-/** The sidebar nav content */
-function SidebarContent({ onLinkClick, darkMode, toggleDarkMode }) {
-  return (
-    <div className="flex flex-col px-4 py-6">
-      {/* Brand at top */}
-      <Link href="/" onClick={onLinkClick} className="block text-center">
-        <AuroraText className="text-2xl font-bold tracking-tight text-gray-800 dark:text-gray-100">
-          Nocabot
-        </AuroraText>
-      </Link>
-
-      {/* Features section */}
-      <ul className="mt-8 space-y-1">
-        {featuresNav.map((item) => (
-          <li key={item.name}>
-            <Link
-              href={item.href}
-              onClick={onLinkClick}
-              className="
-                group flex gap-x-3 rounded-md p-2 text-sm font-semibold
-                text-gray-700 dark:text-gray-200
-                hover:bg-blue-50 dark:hover:bg-gray-700
-                hover:text-blue-600 dark:hover:text-white
-              "
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <hr className="my-4 border-gray-200 dark:border-gray-700" />
-
-      {/* Specialty section */}
-      <div className="mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500">
-        Specialty
-      </div>
-      <ul className="space-y-1">
-        {specialtyNav.map((item) => (
-          <li key={item.name}>
-            <Link
-              href={item.href}
-              onClick={onLinkClick}
-              className="
-                group flex gap-x-3 rounded-md p-2 text-sm font-semibold
-                text-gray-700 dark:text-gray-200
-                hover:bg-blue-50 dark:hover:bg-gray-700
-                hover:text-blue-600 dark:hover:text-white
-              "
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <hr className="my-4 border-gray-200 dark:border-gray-700" />
-
-      {/* Other section */}
-      <div className="mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500">
-        Other
-      </div>
-      <ul className="space-y-1">
-        {otherNav.map((item) => (
-          <li key={item.name}>
-            <Link
-              href={item.href}
-              onClick={onLinkClick}
-              className="
-                group flex gap-x-3 rounded-md p-2 text-sm font-semibold
-                text-gray-700 dark:text-gray-200
-                hover:bg-blue-50 dark:hover:bg-gray-700
-                hover:text-blue-600 dark:hover:text-white
-              "
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      {/* Extra spacing, then Dark Mode button */}
-      <div className="mt-8 pt-2">
-        <button
-          onClick={toggleDarkMode}
-          className="
-            mt-4 flex w-full items-center justify-center gap-2
-            rounded-md border border-gray-200 dark:border-gray-700
-            bg-gray-100 dark:bg-gray-800
-            px-3 py-2 text-sm font-semibold
-            text-gray-800 dark:text-gray-200
-            hover:bg-gray-50 dark:hover:bg-gray-700
-          "
-        >
-          {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-          {darkMode ? "Light Mode" : "Dark Mode"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** The overall layout client that includes the sidebar + mobile nav + flickering grid. */
 export default function LayoutClient({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
+  // Desktop “hover” for sub-menu
+  const [activeIndex, setActiveIndex] = useState(-1);
+  // Mobile “click to expand”
+  const [expandedIndex, setExpandedIndex] = useState(-1);
+
+  const pathname = usePathname();
+
   useEffect(() => {
-    // On mount, read if .dark is present
     const isDark = document.documentElement.classList.contains("dark");
     setDarkMode(isDark);
     setInitialized(true);
@@ -172,94 +104,271 @@ export default function LayoutClient({ children }) {
     localStorage.setItem("nocabotDarkMode", nextVal ? "true" : "false");
   };
 
-  if (!initialized) {
-    // Avoid hydration mismatch by not rendering until we've read localStorage
-    return null;
-  }
+  if (!initialized) return null; // avoid mismatch
+
+  const handleMobileExpand = (idx) => {
+    setExpandedIndex((prev) => (prev === idx ? -1 : idx));
+  };
 
   return (
     <ImageProvider>
-      {/* 
-        Use min-h-screen so the entire page can grow as needed, 
-        removing the separate scroll for the sidebar. 
-      */}
-      <div className="min-h-screen w-full flex flex-col text-gray-800 dark:text-gray-200">
-        {/* Top area is a flex row: sidebar on the left, main area on the right */}
-        <div className="flex-1 flex flex-row">
-          {/* DESKTOP SIDEBAR (hidden on mobile) */}
-          <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:bg-white md:dark:bg-gray-900 md:border-r md:border-gray-200 md:dark:border-gray-700">
-            <SidebarContent
-              onLinkClick={() => {}}
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-            />
-          </aside>
+      <div className="flex min-h-screen w-full flex-col text-gray-800 dark:text-gray-200">
+        {/* MOBILE TOP BAR */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-50"
+            aria-label="Open menu"
+          >
+            <Bars3Icon className="h-6 w-6" />
+          </button>
+          <Link href="/" className="block">
+            <AuroraText className="text-xl font-bold tracking-tight text-gray-800 dark:text-gray-100">
+              Nocabot
+            </AuroraText>
+          </Link>
+        </div>
 
-          {/* MAIN AREA with flickering grid behind */}
-          <div className="relative flex-1 bg-transparent">
-            {/* Flickering grid as background */}
-            <div className="pointer-events-none absolute inset-0 -z-10">
-              <div className="w-full h-full opacity-20">
-                <FlickeringGrid
-                  className="w-full h-full"
-                  squareSize={4}
-                  gridGap={6}
-                  color="#6B7280"
-                  maxOpacity={0.35}
-                  flickerChance={0.1}
-                />
-              </div>
+        {/* DESKTOP SIDEBAR + 2ND COLUMN + MAIN */}
+        <div className="relative flex flex-1">
+          {/* Flickering background */}
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="w-full h-full opacity-20">
+              <FlickeringGrid
+                className="w-full h-full"
+                squareSize={4}
+                gridGap={6}
+                color="#6B7280"
+                maxOpacity={0.35}
+                flickerChance={0.1}
+              />
             </div>
+          </div>
 
-            {/* MOBILE TOP BAR (keep border here) */}
-            <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-50"
-              >
-                <Bars3Icon className="h-6 w-6" />
-              </button>
-              <Link href="/" className="block">
-                <AuroraText className="text-xl font-bold tracking-tight text-gray-800 dark:text-gray-100">
+          {/* LEFT SIDEBAR (desktop) */}
+          <aside className="hidden md:flex md:flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 w-48 transition-colors">
+            {/* Brand */}
+            <div className="p-4 flex items-center justify-center border-b border-gray-100 dark:border-gray-800">
+              <Link href="/">
+                <AuroraText className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
                   Nocabot
                 </AuroraText>
               </Link>
             </div>
 
-            {/* MAIN CONTENT SCROLLS */}
-            <div className="p-2 min-h-[calc(100vh-4rem)] w-[90%] mx-auto md:w-full">
+            {/* Top-level nav */}
+            <nav className="flex-1 overflow-y-auto">
+              {topLevelNav.map((item, idx) => {
+                const Icon = item.icon;
+                const hasSub = !!item.subItems?.length;
+                // active if direct match or any sub route is active
+                const isActive = hasSub
+                  ? item.subItems.some((sub) => sub.href === pathname)
+                  : item.href === pathname;
+
+                return (
+                  <div
+                    key={item.name}
+                    className="relative"
+                    onMouseEnter={() => setActiveIndex(hasSub ? idx : -1)}
+                    onMouseLeave={() => setActiveIndex(-1)}
+                  >
+                    <Link
+                      href={item.href !== "#" ? item.href : "/"}
+                      className={`
+                        flex items-center justify-between gap-2 px-4 py-3
+                        transition-colors
+                        hover:bg-gray-50 dark:hover:bg-gray-800
+                        ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                      `}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </div>
+                      {hasSub && (
+                        <ChevronRightIcon className="h-4 w-4 opacity-60" />
+                      )}
+                    </Link>
+                  </div>
+                );
+              })}
+            </nav>
+
+            {/* Dark Mode button */}
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center gap-2 rounded-md bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+              >
+                {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+            </div>
+          </aside>
+
+          {/* FLOATING 2ND COLUMN (desktop hover) */}
+          {activeIndex > -1 &&
+            topLevelNav[activeIndex].subItems &&
+            topLevelNav[activeIndex].subItems.length > 0 && (
+              <aside
+                className="z-50 absolute top-0 left-48 bottom-0 w-56 bg-white dark:bg-gray-900 shadow-xl dark:shadow-black/50 transition-all
+                           rounded-r-md overflow-y-auto hidden md:flex md:flex-col"
+                onMouseEnter={() => setActiveIndex(activeIndex)}
+                onMouseLeave={() => setActiveIndex(-1)}
+              >
+                <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+                  <span className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                    {topLevelNav[activeIndex].name}
+                  </span>
+                </div>
+                <nav className="flex-1">
+                  {topLevelNav[activeIndex].subItems.map((sub) => {
+                    const isSubActive = sub.href === pathname;
+                    return (
+                      <Link
+                        key={sub.name}
+                        href={sub.href}
+                        className={`
+                          block px-4 py-2 text-sm transition-colors
+                          hover:bg-gray-50 dark:hover:bg-gray-800
+                          ${isSubActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                        `}
+                      >
+                        {sub.name}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </aside>
+            )}
+
+          {/* MAIN CONTENT (centered container) */}
+          <main className="flex-1 overflow-auto bg-white dark:bg-gray-900 transition-colors">
+            <div className="mx-auto w-[90%] max-w-4xl py-6">
               {children}
             </div>
-          </div>
+          </main>
         </div>
 
         {/* MOBILE OFF-CANVAS SIDEBAR */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 flex">
-            {/* overlay */}
+          <div className="fixed inset-0 z-50 flex md:hidden">
+            {/* Overlay */}
             <div
               className="absolute inset-0 bg-black/50"
               onClick={() => setMobileMenuOpen(false)}
             />
-            <div className="relative w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-              {/*
-                Remove the border-b here so we don't get an extra line
-                under "Nocabot" in the open sidebar.
-              */}
-              <div className="flex items-center justify-between p-4">
+            <div className="relative w-64 max-w-full bg-white dark:bg-gray-900 flex flex-col shadow-xl dark:shadow-black/50">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+                <AuroraText className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
+                  Nocabot
+                </AuroraText>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-50"
+                  className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-50"
+                  aria-label="Close menu"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-              <div className="flex-1">
-                <SidebarContent
-                  onLinkClick={() => setMobileMenuOpen(false)}
-                  darkMode={darkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
+
+              {/* Mobile nav */}
+              <nav className="flex-1 overflow-y-auto">
+                {topLevelNav.map((item, idx) => {
+                  const Icon = item.icon;
+                  const hasSub = !!item.subItems?.length;
+                  const isExpanded = expandedIndex === idx;
+
+                  // active if direct or sub link matches
+                  const isActive = hasSub
+                    ? item.subItems.some((sub) => sub.href === pathname)
+                    : item.href === pathname;
+
+                  // If no subItems, link directly
+                  if (!hasSub) {
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`
+                          flex items-center gap-2 px-4 py-3
+                          hover:bg-gray-50 dark:hover:bg-gray-800
+                          transition-colors
+                          ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                        `}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </Link>
+                    );
+                  } else {
+                    // has subItems => expand/collapse
+                    return (
+                      <div key={item.name}>
+                        <div
+                          className={`
+                            flex items-center justify-between px-4 py-3 cursor-pointer
+                            hover:bg-gray-50 dark:hover:bg-gray-800
+                            transition-colors
+                            ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                          `}
+                          onClick={() => setExpandedIndex((prev) => (prev === idx ? -1 : idx))}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-5 w-5" />
+                            <span>{item.name}</span>
+                          </div>
+                          <ChevronRightIcon
+                            className={`h-4 w-4 transition-transform
+                              ${isExpanded ? "rotate-90" : ""}
+                            `}
+                          />
+                        </div>
+                        {/* Sub-items if expanded */}
+                        {isExpanded && (
+                          <div className="ml-8 border-l border-gray-100 dark:border-gray-800">
+                            {item.subItems.map((sub) => {
+                              const isSubActive = sub.href === pathname;
+                              return (
+                                <Link
+                                  key={sub.name}
+                                  href={sub.href}
+                                  onClick={() => setMobileMenuOpen(false)}
+                                  className={`
+                                    block pl-4 pr-2 py-2 text-sm
+                                    hover:bg-gray-50 dark:hover:bg-gray-800
+                                    transition-colors
+                                    ${
+                                      isSubActive
+                                        ? "bg-gray-50 dark:bg-gray-800 font-semibold"
+                                        : ""
+                                    }
+                                  `}
+                                >
+                                  {sub.name}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                })}
+              </nav>
+
+              {/* Dark mode on mobile */}
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  onClick={toggleDarkMode}
+                  className="w-full flex items-center justify-center gap-2 rounded-md bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {darkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                  <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                </button>
               </div>
             </div>
           </div>

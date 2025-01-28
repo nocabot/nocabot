@@ -13,7 +13,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  // Hide <body> until we've applied .dark if needed, to prevent dark-mode flash
+  // Hide <body> until we've applied .dark if needed, to prevent flicker
   const noFlashScript = `
     document.addEventListener("DOMContentLoaded", function() {
       try {
@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-        {/* Hide body until we set dark/light mode to avoid flicker */}
+        {/* Hide body until we set dark/light mode */}
         <style>{`body { display: none; }`}</style>
         <script defer dangerouslySetInnerHTML={{ __html: noFlashScript }} />
       </head>
