@@ -22,7 +22,7 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-// Adjust your topLevelNav as you like
+// Adjust your topLevelNav
 const topLevelNav = [
   {
     name: "Home",
@@ -52,9 +52,15 @@ const topLevelNav = [
     ],
   },
   {
+    // Turn "Apps" into a dropdown, so we can list multiple sub tools
     name: "Apps",
-    href: "/apps",
+    href: "#",
     icon: PuzzlePieceIcon,
+    subItems: [
+      { name: "Meme Maker", href: "/apps/meme-maker" },
+      { name: "Chicago Street Cleaning", href: "/apps/chicago-street-cleaning" },
+      { name: "Score Keeper", href: "/apps/score-keeper" },
+    ],
   },
   {
     name: "Video",
@@ -85,6 +91,7 @@ const topLevelNav = [
     subItems: [
       { name: "Compound Interest", href: "/finance/compound-interest" },
       { name: "Income Tax", href: "/finance/income-tax" },
+      { name: "Amortization", href: "/finance/amortization" }, // <-- new
     ],
   },
 ];
@@ -139,7 +146,7 @@ export default function LayoutClient({ children }) {
 
         {/* DESKTOP SIDEBAR + MAIN */}
         <div className="relative flex flex-1">
-          {/* Flickering grid */}
+          {/* Flickering grid background */}
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="w-full h-full opacity-20">
               <FlickeringGrid
@@ -207,7 +214,7 @@ export default function LayoutClient({ children }) {
             </div>
           </aside>
 
-          {/* HOVER 2ND COLUMN */}
+          {/* 2ND COLUMN (Desktop hover) */}
           {activeIndex > -1 &&
             topLevelNav[activeIndex].subItems &&
             topLevelNav[activeIndex].subItems.length > 0 && (
@@ -276,6 +283,7 @@ export default function LayoutClient({ children }) {
                   const Icon = item.icon;
                   const hasSub = !!item.subItems;
                   const isExpanded = expandedIndex === idx;
+                  // active if sub link or direct link
                   const isActive = hasSub
                     ? item.subItems.some((sub) => sub.href === pathname)
                     : item.href === pathname;
@@ -351,9 +359,12 @@ export default function LayoutClient({ children }) {
               <div className="p-4 border-t border-gray-100 dark:border-gray-800">
                 <button
                   onClick={toggleDarkMode}
-                  className="w-full flex items-center justify-center gap-2
-                    rounded-md bg-gray-200 dark:bg-gray-800 px-3 py-2 text-sm font-semibold
-                    text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700
+                  className="
+                    w-full flex items-center justify-center gap-2
+                    rounded-md bg-gray-200 dark:bg-gray-800
+                    px-3 py-2 text-sm font-semibold
+                    text-gray-800 dark:text-gray-200
+                    hover:bg-gray-300 dark:hover:bg-gray-700
                     transition-colors
                   "
                 >
