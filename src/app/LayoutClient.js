@@ -297,8 +297,8 @@ export default function LayoutClient({ children }) {
                 />
               </div>
 
-              {/* Inner wrapper for 90% width on mobile, max-w-7xl on large */}
-              <div className="w-[90%] max-w-7xl mx-auto p-4">{children}</div>
+              {/* Inner wrapper changed to 95% on mobile */}
+              <div className="w-[99%] max-w-7xl mx-auto p-4">{children}</div>
             </main>
 
             {/* MOBILE SIDEBAR OFF-CANVAS */}
