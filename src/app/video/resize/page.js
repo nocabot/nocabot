@@ -1,47 +1,90 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import GlobalVideoUploader from "../../../components/ui/GlobalVideoUploader";
+import React, { useState, useRef, useEffect } from "react";
+import { useVideoContext } from "@/context/VideoProvider";
+import GlobalVideoUploader from "@/components/ui/GlobalVideoUploader";
 
 export default function VideoResizePage() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [duration, setDuration] = useState(0);
+  const { globalVideo } = useVideoContext();
 
-  const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
+  // Refs + State
+  const videoRef = useRef(null);
+  const [duration, setDuration] = useState(0);         // total length
+  const [currentTime, setCurrentTime] = useState(0);   // current playback time
+  const [isPlaying, setIsPlaying] = useState(false);
 
+  const [startTime, setStartTime] = useState(0);       // user-chosen in-point
+  const [endTime, setEndTime] = useState(0);           // user-chosen out-point
   const [isTrimming, setIsTrimming] = useState(false);
   const [didTrim, setDidTrim] = useState(false);
+
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const videoRef = useRef(null);
-
-  // Called from the uploader
-  const handleFileSelected = (file) => {
-    setErrorMsg(null);
-    setDidTrim(false);
-    setSelectedFile(file);
-
-    // build a local URL
-    const url = URL.createObjectURL(file);
-    setVideoUrl(url);
-  };
-
+  // When metadata is loaded, store duration and default end to full length
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
     const dur = videoRef.current.duration;
-    if (!isNaN(dur) && dur > 0) {
+    if (dur && dur > 0) {
       setDuration(dur);
-      setStartTime(0);
-      setEndTime(dur);
+      setEndTime(dur); // default end is full length
     }
   };
 
-  const handleTrim = () => {
-    if (!selectedFile) return;
-    if (startTime >= endTime) {
+  // Keep track of the current playback time
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    setCurrentTime(videoRef.current.currentTime);
+  };
+
+  // Play/Pause toggle
+  const handlePlayPause = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  // Scrub the timeline => update video currentTime
+  const handleScrub = (e) => {
+    const val = parseFloat(e.target.value);
+    setCurrentTime(val);
+    if (videoRef.current) {
+      videoRef.current.currentTime = val;
+    }
+  };
+
+  // Mark the start (in) point
+  const handleSetStart = () => {
+    if (currentTime >= endTime) {
       setErrorMsg("Start time must be less than end time!");
+      return;
+    }
+    setErrorMsg(null);
+    setStartTime(currentTime);
+  };
+
+  // Mark the end (out) point
+  const handleSetEnd = () => {
+    if (currentTime <= startTime) {
+      setErrorMsg("End time must be greater than start time!");
+      return;
+    }
+    setErrorMsg(null);
+    setEndTime(currentTime);
+  };
+
+  // Fake "Trim" action
+  const handleTrim = () => {
+    if (!globalVideo?.file) {
+      setErrorMsg("Please upload a video first.");
+      return;
+    }
+    if (startTime >= endTime) {
+      setErrorMsg("Invalid in/out points.");
       return;
     }
     setErrorMsg(null);
@@ -54,16 +97,34 @@ export default function VideoResizePage() {
     }, 2000);
   };
 
+  // Clear all states
   const handleClear = () => {
-    setSelectedFile(null);
-    setVideoUrl(null);
-    setDuration(0);
-    setStartTime(0);
-    setEndTime(0);
+    setErrorMsg(null);
     setIsTrimming(false);
     setDidTrim(false);
-    setErrorMsg(null);
+    setStartTime(0);
+    setEndTime(0);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    // If you want to also remove from global context => `clearVideo()`
   };
+
+  // If globalVideo is removed, pause the video
+  useEffect(() => {
+    if (!globalVideo && videoRef.current) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [globalVideo]);
+
+  // Calculate marker positions as percentages
+  const startMarkerLeft = duration > 0 ? (startTime / duration) * 100 : 0;
+  const endMarkerLeft = duration > 0 ? (endTime / duration) * 100 : 0;
 
   return (
     <div
@@ -71,16 +132,15 @@ export default function VideoResizePage() {
         mx-auto mt-10 mb-10 w-full
         sm:w-[95%] md:w-[85%]
         bg-white dark:bg-gray-800
-        p-12
-        rounded-md shadow
+        p-12 rounded-md shadow
         font-sans
       "
     >
       <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
-        Video “Resize” (Trim)
+        Video Trimmer
       </h1>
       <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-        Upload a single video file, pick your start &amp; end times, then trim.
+        Upload a single video, pick your start/end points, then trim.
       </p>
 
       {errorMsg && (
@@ -89,140 +149,142 @@ export default function VideoResizePage() {
         </div>
       )}
 
-      {/* If no file yet, show the plus icon drag zone */}
-      {!selectedFile && (
-        <div className="mt-6">
-          <GlobalVideoUploader onFileSelected={handleFileSelected} />
-        </div>
-      )}
+      {/* Uploader */}
+      <div className="mt-6">
+        <GlobalVideoUploader />
+      </div>
 
-      {/* If we have a file, show video + sliders */}
-      {selectedFile && (
-        <div className="mt-6">
-          {videoUrl && (
-            <div className="flex justify-center">
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                onLoadedMetadata={handleLoadedMetadata}
-                className="max-w-full max-h-[400px]"
-              >
-                Your browser does not support video playback.
-              </video>
-            </div>
-          )}
+      {/* Show trimmer UI if we have a loaded video */}
+      {globalVideo?.url && (
+        <div className="mt-8 flex flex-col items-center gap-4">
+          {/* Video element (no default controls) */}
+          <video
+            ref={videoRef}
+            src={globalVideo.url}
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            className="max-w-full max-h-[360px] border border-gray-300 dark:border-gray-700 rounded-md"
+            controls={false}
+          >
+            Your browser does not support video playback.
+          </video>
 
-          {duration > 0 && (
-            <div className="mt-6 flex flex-col items-center gap-4">
-              <div className="w-full max-w-md">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Start Time: {startTime.toFixed(2)}s
-                </label>
-                <input
-                  type="range"
-                  min={0}
-                  max={endTime}
-                  step={0.01}
-                  value={startTime}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    if (val < endTime) {
-                      setStartTime(val);
-                    }
-                  }}
-                  className="my-trim-slider"
-                />
-              </div>
-
-              <div className="w-full max-w-md">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  End Time: {endTime.toFixed(2)}s
-                </label>
-                <input
-                  type="range"
-                  min={startTime}
-                  max={duration}
-                  step={0.01}
-                  value={endTime}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    if (val > startTime) {
-                      setEndTime(val);
-                    }
-                  }}
-                  className="my-trim-slider"
-                />
-              </div>
-
-              <style jsx>{`
-                .my-trim-slider {
-                  -webkit-appearance: none;
-                  height: 6px;
-                  border-radius: 9999px;
-                  background: linear-gradient(to right, #b3e0ff, #0984e3, #074291);
-                  outline: none;
-                  cursor: pointer;
-                  margin-top: 4px;
-                }
-                .my-trim-slider::-webkit-slider-thumb {
-                  -webkit-appearance: none;
-                  height: 16px;
-                  width: 16px;
-                  background: #ffffff;
-                  border: 2px solid #0984e3;
-                  border-radius: 9999px;
-                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-                  cursor: pointer;
-                  margin-top: -5px;
-                }
-                .my-trim-slider::-moz-range-thumb {
-                  height: 16px;
-                  width: 16px;
-                  background: #ffffff;
-                  border: 2px solid #0984e3;
-                  border-radius: 9999px;
-                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-                  cursor: pointer;
-                }
-              `}</style>
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+          {/* Playback controls + timeline */}
+          <div className="flex items-center gap-4">
             <button
-              onClick={handleTrim}
-              disabled={isTrimming}
+              onClick={handlePlayPause}
               className="
-                rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white
+                rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white 
                 hover:bg-indigo-500
               "
             >
-              {isTrimming ? "Trimming..." : "Trim Video"}
+              {isPlaying ? "Pause" : "Play"}
             </button>
 
-            {didTrim && (
+            {/* Time scrubber + markers */}
+            <div className="relative flex flex-col items-center">
+              <label className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Current: {currentTime.toFixed(2)}s / {duration.toFixed(2)}s
+              </label>
+              <div className="relative w-64">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration}
+                  step={0.01}
+                  value={currentTime}
+                  onChange={handleScrub}
+                  className="w-full"
+                />
+                {/* Start marker */}
+                {duration > 0 && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-[2px] h-4 bg-green-600"
+                    style={{ left: `${startMarkerLeft}%` }}
+                  />
+                )}
+                {/* End marker */}
+                {duration > 0 && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-[2px] h-4 bg-red-600"
+                    style={{ left: `${endMarkerLeft}%` }}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* In/Out set + Display times + Trim action */}
+          <div className="mt-4 flex flex-col items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
-                onClick={() => alert("Download trimmed video (dummy)!")}
+                onClick={handleSetStart}
                 className="
-                  rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white
-                  hover:bg-green-500
+                  rounded-md bg-gray-200 dark:bg-gray-700 
+                  px-4 py-2 text-sm font-semibold 
+                  text-gray-700 dark:text-gray-100 
+                  hover:bg-gray-300 dark:hover:bg-gray-600
                 "
               >
-                Download
+                Set Start (In)
               </button>
-            )}
+              <button
+                onClick={handleSetEnd}
+                className="
+                  rounded-md bg-gray-200 dark:bg-gray-700 
+                  px-4 py-2 text-sm font-semibold 
+                  text-gray-700 dark:text-gray-100 
+                  hover:bg-gray-300 dark:hover:bg-gray-600
+                "
+              >
+                Set End (Out)
+              </button>
+            </div>
 
-            <button
-              onClick={handleClear}
-              className="
-                rounded-md bg-gray-300 dark:bg-gray-700 px-6 py-2 text-sm font-semibold
-                text-gray-800 dark:text-gray-100
-                hover:bg-gray-400 dark:hover:bg-gray-600
-              "
-            >
-              Clear
-            </button>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              <strong>In:</strong> {startTime.toFixed(2)}s &nbsp;/&nbsp;
+              <strong>Out:</strong> {endTime.toFixed(2)}s
+            </p>
+
+            <div className="mt-2 flex items-center gap-4">
+              <button
+                onClick={handleTrim}
+                disabled={isTrimming}
+                className={`
+                  rounded-md px-6 py-2 text-sm font-semibold text-white
+                  ${
+                    isTrimming
+                      ? "bg-indigo-300 cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-500"
+                  }
+                `}
+              >
+                {isTrimming ? "Trimming..." : "Trim Video"}
+              </button>
+
+              {didTrim && (
+                <button
+                  onClick={() => alert("Download trimmed result (dummy)!")}
+                  className="
+                    rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white
+                    hover:bg-green-500
+                  "
+                >
+                  Download
+                </button>
+              )}
+
+              <button
+                onClick={handleClear}
+                className="
+                  rounded-md bg-gray-300 dark:bg-gray-700 px-6 py-2 text-sm font-semibold
+                  text-gray-800 dark:text-gray-100
+                  hover:bg-gray-400 dark:hover:bg-gray-600
+                "
+              >
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       )}

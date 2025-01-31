@@ -1,43 +1,53 @@
 "use client";
 
 import React, { useState } from "react";
-import GlobalVideoUploader from "../../../components/ui/GlobalVideoUploader";
+import { useVideoContext } from "@/context/VideoProvider";
+import GlobalVideoUploader from "@/components/ui/GlobalVideoUploader";
 
 export default function VideoCompressPage() {
+  const { globalVideo, clearVideo } = useVideoContext();
+
   const [sliderValue, setSliderValue] = useState(5);
   const [isCompressing, setIsCompressing] = useState(false);
   const [didProcess, setDidProcess] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const handleCompress = () => {
+    if (!globalVideo) {
+      setErrorMsg("Please upload a video first.");
+      return;
+    }
     setErrorMsg(null);
     setDidProcess(false);
     setIsCompressing(true);
 
-    // Simulate a server call
+    // Fake server action
     setTimeout(() => {
       setIsCompressing(false);
       setDidProcess(true);
     }, 2000);
   };
 
+  const handleDownload = () => {
+    if (!globalVideo) return;
+    alert("Downloaded compressed video (dummy).");
+  };
+
   const handleClear = () => {
     setErrorMsg(null);
     setDidProcess(false);
+    setSliderValue(5);
+    clearVideo();
   };
 
   return (
-    <div
-      className="
-        mx-auto mt-10 mb-10 w-full
-        sm:w-[95%] md:w-[85%]
-        bg-white dark:bg-gray-800
-        p-12
-        rounded-md
-        shadow
-        font-sans
-      "
-    >
+    <div className="
+      mx-auto mt-10 mb-10 w-full
+      sm:w-[95%] md:w-[85%]
+      bg-white dark:bg-gray-800
+      p-12
+      rounded-md shadow font-sans
+    ">
       <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
         Video Compress
       </h1>
@@ -51,10 +61,10 @@ export default function VideoCompressPage() {
         </div>
       )}
 
-      {/* Slider at top (like audio compress) */}
+      {/* Slider */}
       <div className="mt-6 flex flex-col items-center gap-2">
-        <div className="flex w-full max-w-sm items-center gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Min</span>
+        <div className="flex w-full max-w-sm items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <span>Min</span>
           <input
             type="range"
             min={1}
@@ -64,7 +74,7 @@ export default function VideoCompressPage() {
             onChange={(e) => setSliderValue(parseFloat(e.target.value))}
             className="my-video-slider w-full"
           />
-          <span className="text-xs text-gray-500 dark:text-gray-400">Max</span>
+          <span>Max</span>
         </div>
         <style jsx>{`
           .my-video-slider {
@@ -98,16 +108,9 @@ export default function VideoCompressPage() {
         `}</style>
       </div>
 
-      {/* Uploader (video) */}
+      {/* Uploader */}
       <div className="mt-6">
-        <GlobalVideoUploader
-          didProcess={didProcess}
-          onDownloadOne={() => alert("Downloaded (dummy)")}
-          onNewVideo={() => {
-            setErrorMsg(null);
-            setDidProcess(false);
-          }}
-        />
+        <GlobalVideoUploader />
       </div>
 
       {/* Buttons */}
@@ -115,17 +118,21 @@ export default function VideoCompressPage() {
         <button
           onClick={handleCompress}
           disabled={isCompressing}
-          className="
-            rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white
-            hover:bg-indigo-500
-          "
+          className={`
+            rounded-md px-6 py-2 text-sm font-semibold text-white
+            ${
+              isCompressing
+                ? "bg-indigo-300 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-500"
+            }
+          `}
         >
           {isCompressing ? "Compressing..." : "Compress"}
         </button>
 
         {didProcess && (
           <button
-            onClick={() => alert("You could do 'Download All' if needed.")}
+            onClick={handleDownload}
             className="
               rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white
               hover:bg-green-500
@@ -138,7 +145,8 @@ export default function VideoCompressPage() {
         <button
           onClick={handleClear}
           className="
-            rounded-md bg-gray-300 dark:bg-gray-700 px-6 py-2 text-sm font-semibold
+            rounded-md bg-gray-300 dark:bg-gray-700
+            px-6 py-2 text-sm font-semibold
             text-gray-800 dark:text-gray-100
             hover:bg-gray-400 dark:hover:bg-gray-600
           "

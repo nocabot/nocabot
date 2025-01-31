@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useImageContext } from "@/context/ImageProvider";
 import { PlusIcon } from "@heroicons/react/20/solid";
 
@@ -11,6 +11,9 @@ export default function GlobalUploader({
 }) {
   const { globalImages, addImages, removeImage } = useImageContext();
   const fileInputRef = useRef(null);
+
+  // Highlight styling for drag/drop
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -23,17 +26,33 @@ export default function GlobalUploader({
     onNewImages?.();
   };
 
-  const handleDrop = (e) => {
+  const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const droppedFiles = Array.from(e.dataTransfer.files || []);
-    if (!droppedFiles.length) return;
-    addImages(droppedFiles);
-    onNewImages?.();
+    setIsDragging(true);
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files || []);
+    if (!droppedFiles.length) return;
+    addImages(droppedFiles);
+    onNewImages?.();
   };
 
   const handleRemove = (index, ev) => {
@@ -44,23 +63,36 @@ export default function GlobalUploader({
 
   return (
     <div
-      className="
+      className={`
         relative flex items-center justify-center
-        rounded-md border-2 border-dashed border-gray-300 dark:border-gray-700
+        rounded-md border-2 border-dashed
+        p-6 min-h-[300px]
         bg-white dark:bg-gray-800
-        p-6
         text-gray-600 dark:text-gray-300
-        min-h-[300px]
-      "
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
+        cursor-pointer
+        ${
+          isDragging
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900"
+            : "border-gray-300 dark:border-gray-700"
+        }
+      `}
       onClick={handleUploadClick}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       {globalImages.length === 0 && (
         <div className="pointer-events-none flex flex-col items-center justify-center text-center">
-          <PlusIcon className="h-10 w-10 text-[#0984e3]" />
+          <PlusIcon
+            className={`h-10 w-10 ${
+              isDragging ? "text-blue-500" : "text-[#0984e3]"
+            }`}
+          />
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Drag &amp; Drop or Click to Upload <br /> (up to 5)
+            {isDragging
+              ? "Drop your images here!"
+              : "Drag & Drop or Click to Upload\n(up to 5 images)"}
           </p>
         </div>
       )}

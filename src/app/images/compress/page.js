@@ -17,13 +17,14 @@ export default function CompressPage() {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const handleCompressAll = async () => {
-    setErrorMsg(null); // Clear error on main action
+    setErrorMsg(null);
 
     if (globalImages.length === 0) return;
     setDidProcess(false);
     setIsCompressing(true);
-
     setIsDisabled(true);
+
+    // Re-enable button after a short delay to prevent double-click spam
     setTimeout(() => setIsDisabled(false), 3000);
 
     try {
@@ -44,6 +45,7 @@ export default function CompressPage() {
         throw new Error("No images returned from server");
       }
 
+      // Update images with compressed versions
       const updated = globalImages.map((img, idx) => {
         const srv = data.images[idx];
         if (srv?.compressed_b64) {

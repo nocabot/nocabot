@@ -1,90 +1,117 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import GlobalAudioUploader from "../../../components/ui/GlobalAudioUploader";
+import { useAudioContext } from "@/context/AudioProvider";
+import GlobalAudioUploader from "@/components/ui/GlobalAudioUploader";
+import { AUDIO_SERVER_BASE_URL } from "@/config";
 
 export default function AudioResizePage() {
-  const [selectedFile, setSelectedFile] = useState(null);   // the actual File
-  const [audioUrl, setAudioUrl] = useState(null);           // object URL
-  const [duration, setDuration] = useState(0);
+  const { globalAudio } = useAudioContext();
 
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   const [isTrimming, setIsTrimming] = useState(false);
   const [didTrim, setDidTrim] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [processedUrl, setProcessedUrl] = useState(null);
 
   const audioRef = useRef(null);
 
-  // Called from the uploader when the user picks a file
-  const handleFileSelected = (file) => {
-    setErrorMsg(null);
-    setDidTrim(false);
-    setSelectedFile(file);
-
-    // create an object URL to play
-    const url = URL.createObjectURL(file);
-    setAudioUrl(url);
-  };
-
-  // When audio metadata is loaded, we get its duration
+  // Once we load the audio for the first time
   const handleLoadedMetadata = () => {
     if (!audioRef.current) return;
     const dur = audioRef.current.duration;
-    if (!isNaN(dur) && dur > 0) {
+    if (dur && dur > 0) {
       setDuration(dur);
       setStartTime(0);
       setEndTime(dur);
     }
   };
 
-  // "Trim" is a dummy server call
-  const handleTrim = () => {
-    if (!selectedFile) return;
+  const handleTrim = async () => {
+    if (!globalAudio?.file) {
+      setErrorMsg("Please upload an audio file first.");
+      return;
+    }
     if (startTime >= endTime) {
-      setErrorMsg("Start time must be less than end time!");
+      setErrorMsg("Start time must be < end time!");
       return;
     }
     setErrorMsg(null);
     setIsTrimming(true);
     setDidTrim(false);
+    setProcessedUrl(null);
 
-    // Fake server call
-    setTimeout(() => {
-      setIsTrimming(false);
+    try {
+      const formData = new FormData();
+      formData.append("start_time", String(startTime));
+      formData.append("end_time", String(endTime));
+      formData.append("files", globalAudio.file);
+
+      const res = await fetch(`${AUDIO_SERVER_BASE_URL}/audio/resize`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server error: ${res.status} - ${text}`);
+      }
+
+      const data = await res.json();
+      if (!data.audios || data.audios.length === 0) {
+        throw new Error("No trimmed audio returned from server.");
+      }
+
+      const b64 = data.audios[0].trimmed_b64;
+      const binary = atob(b64);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        array[i] = binary.charCodeAt(i);
+      }
+
+      const blob = new Blob([array], { type: "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      setProcessedUrl(url);
       setDidTrim(true);
-    }, 2000);
+    } catch (err) {
+      setErrorMsg(err.message || "Audio trimming failed.");
+    } finally {
+      setIsTrimming(false);
+    }
   };
 
-  const handleClear = () => {
-    setSelectedFile(null);
-    setAudioUrl(null);
-    setDuration(0);
-    setStartTime(0);
-    setEndTime(0);
+  const handleDownload = () => {
+    if (!processedUrl || !globalAudio?.file) return;
+    const origName = globalAudio.file.name.replace(/\.[^/.]+$/, "");
+    const newName = `${origName}_trimmed.mp3`;
+
+    const link = document.createElement("a");
+    link.href = processedUrl;
+    link.download = newName;
+    link.click();
+  };
+
+  const handleClearProcessed = () => {
+    setErrorMsg(null);
+    setProcessedUrl(null);
     setIsTrimming(false);
     setDidTrim(false);
-    setErrorMsg(null);
+    setStartTime(0);
+    setEndTime(0);
+    setDuration(0);
   };
 
   return (
-    <div
-      className="
-        mx-auto mt-10 mb-10 w-full
-        sm:w-[95%] md:w-[85%]
-        bg-white dark:bg-gray-800
-        p-12
-        rounded-md
-        shadow
-        font-sans
-      "
+    <div className="mx-auto mt-10 mb-10 w-full sm:w-[95%] md:w-[85%]
+      bg-white dark:bg-gray-800 p-12 rounded-md shadow font-sans"
     >
       <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
         Audio “Resize” (Trim)
       </h1>
       <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-        Upload a single audio file, pick your start &amp; end times, then trim.
+        Upload a single audio file, pick your start & end times, then trim.
       </p>
 
       {errorMsg && (
@@ -93,35 +120,27 @@ export default function AudioResizePage() {
         </div>
       )}
 
-      {/* If we haven't selected a file, show the GlobalAudioUploader.
-          If we have selectedFile, we can still show the player below. */}
-      {!selectedFile && (
-        <div className="mt-6">
-          <GlobalAudioUploader onFileSelected={handleFileSelected} />
-        </div>
-      )}
+      {/* Uploader */}
+      <div className="mt-6">
+        <GlobalAudioUploader />
+      </div>
 
-      {/* Once we have a file, show the player and the trim UI */}
-      {selectedFile && (
-        <div className="mt-6">
-          {/* We could hide the uploader if you prefer, or keep it: 
-              We'll hide it to match "once you have a file, you see the trimming UI" */}
-          {/* AUDIO PLAYER */}
-          {audioUrl && (
+      {/* Playback + sliders if we have an audio */}
+      {globalAudio && (
+        <>
+          <div className="mt-6 text-center">
             <audio
               ref={audioRef}
-              src={audioUrl}
+              src={globalAudio.url}
               controls
               onLoadedMetadata={handleLoadedMetadata}
-              className="w-full max-w-md mx-auto block"
-            >
-              Your browser does not support the audio element.
-            </audio>
-          )}
+              className="w-full max-w-md mx-auto"
+            />
+          </div>
 
           {duration > 0 && (
             <div className="mt-6 flex flex-col items-center gap-4">
-              {/* START TIME */}
+              {/* START TIME slider */}
               <div className="w-full max-w-md">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Start Time: {startTime.toFixed(2)}s
@@ -134,15 +153,13 @@ export default function AudioResizePage() {
                   value={startTime}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value);
-                    if (val < endTime) {
-                      setStartTime(val);
-                    }
+                    if (val < endTime) setStartTime(val);
                   }}
-                  className="my-trim-slider"
+                  className="my-trim-slider w-full"
                 />
               </div>
 
-              {/* END TIME */}
+              {/* END TIME slider */}
               <div className="w-full max-w-md">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   End Time: {endTime.toFixed(2)}s
@@ -155,11 +172,9 @@ export default function AudioResizePage() {
                   value={endTime}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value);
-                    if (val > startTime) {
-                      setEndTime(val);
-                    }
+                    if (val > startTime) setEndTime(val);
                   }}
-                  className="my-trim-slider"
+                  className="my-trim-slider w-full"
                 />
               </div>
 
@@ -196,45 +211,41 @@ export default function AudioResizePage() {
               `}</style>
             </div>
           )}
-
-          {/* Buttons */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={handleTrim}
-              disabled={isTrimming}
-              className="
-                rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white
-                hover:bg-indigo-500
-              "
-            >
-              {isTrimming ? "Trimming..." : "Trim Audio"}
-            </button>
-
-            {didTrim && (
-              <button
-                onClick={() => alert("Download trimmed audio (dummy)!")}
-                className="
-                  rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white
-                  hover:bg-green-500
-                "
-              >
-                Download
-              </button>
-            )}
-
-            <button
-              onClick={handleClear}
-              className="
-                rounded-md bg-gray-300 dark:bg-gray-700 px-6 py-2 text-sm font-semibold
-                text-gray-800 dark:text-gray-100
-                hover:bg-gray-400 dark:hover:bg-gray-600
-              "
-            >
-              Clear
-            </button>
-          </div>
-        </div>
+        </>
       )}
+
+      {/* Buttons */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+        <button
+          onClick={handleTrim}
+          disabled={!globalAudio || isTrimming}
+          className={`rounded-md px-6 py-2 text-sm font-semibold text-white ${
+            !globalAudio || isTrimming
+              ? "bg-indigo-300 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-500"
+          }`}
+        >
+          {isTrimming ? "Trimming..." : "Trim Audio"}
+        </button>
+
+        {didTrim && processedUrl && (
+          <button
+            onClick={handleDownload}
+            className="rounded-md bg-green-600 px-6 py-2 text-sm font-semibold text-white hover:bg-green-500"
+          >
+            Download
+          </button>
+        )}
+
+        {(didTrim || processedUrl) && (
+          <button
+            onClick={handleClearProcessed}
+            className="rounded-md bg-gray-300 dark:bg-gray-700 px-6 py-2 text-sm font-semibold text-gray-800 dark:text-gray-100 hover:bg-gray-400 dark:hover:bg-gray-600"
+          >
+            Clear Processed
+          </button>
+        )}
+      </div>
     </div>
   );
 }

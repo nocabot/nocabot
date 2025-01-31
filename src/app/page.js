@@ -1,7 +1,7 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import { AuroraText } from "@/components/ui/AuroraText";
 import {
   ArrowsPointingInIcon,
   ScissorsIcon,
@@ -9,165 +9,264 @@ import {
   PhotoIcon,
   GlobeAltIcon,
   DevicePhoneMobileIcon,
-  FaceSmileIcon,
-  InformationCircleIcon,
+  VideoCameraIcon,
+  MusicalNoteIcon,
+  SwatchIcon,
+  PaintBrushIcon,
+  PaperAirplaneIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
+import { AuroraText } from "@/components/ui/AuroraText";
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
+/**
+ * Example color combos for icons in light/dark mode:
+ *   iconBg: "bg-blue-50 dark:bg-blue-900"
+ *   iconFg: "text-blue-700 dark:text-white"
+ */
 
-const actions = [
+// IMAGES
+const imagesActions = [
   {
-    title: "Compress Images",
-    href: "/compress",
+    title: "Compress",
+    href: "/images/compress",
+    description: "Reduce file sizes while retaining quality.",
     icon: ArrowsPointingInIcon,
-    iconFg: "text-purple-700 dark:text-white",
-    iconBg: "bg-purple-50 dark:bg-purple-900",
-    description: "Reduce file sizes while retaining quality for faster load times.",
+    iconBg: "bg-blue-50 dark:bg-blue-900",
+    iconFg: "text-blue-700 dark:text-white",
   },
   {
-    title: "Resize Images",
-    href: "/resize",
+    title: "Resize",
+    href: "/images/resize",
+    description: "Change dimensions or aspect ratios.",
     icon: ScissorsIcon,
-    iconFg: "text-rose-700 dark:text-white",
-    iconBg: "bg-rose-50 dark:bg-rose-900",
-    description: "Quickly change dimensions or aspect ratios to fit any usage scenario.",
-  },
-  {
-    title: "Convert Images",
-    href: "/convert",
-    icon: ArrowsRightLeftIcon,
-    iconFg: "text-sky-700 dark:text-white",
-    iconBg: "bg-sky-50 dark:bg-sky-900",
-    description: "Switch between PNG, JPG, GIF, WebP, and more with a single click.",
-  },
-  {
-    title: "Remove Background",
-    href: "/remove-bg",
-    icon: PhotoIcon,
-    iconFg: "text-indigo-700 dark:text-white",
-    iconBg: "bg-indigo-50 dark:bg-indigo-900",
-    description: "Automatically remove backgrounds.",
-  },
-  {
-    title: "Generate Favicons",
-    href: "/favicons",
-    icon: GlobeAltIcon,
-    iconFg: "text-green-700 dark:text-white",
     iconBg: "bg-green-50 dark:bg-green-900",
-    description: "Create multiple favicon sizes (.ico) for perfect branding.",
+    iconFg: "text-green-700 dark:text-white",
+  },
+  {
+    title: "Convert",
+    href: "/images/convert",
+    description: "Switch between PNG, JPG, GIF, and more.",
+    icon: ArrowsRightLeftIcon,
+    iconBg: "bg-amber-50 dark:bg-amber-900",
+    iconFg: "text-amber-700 dark:text-white",
+  },
+  {
+    title: "Remove BG",
+    href: "/images/remove-bg",
+    description: "Automatically remove backgrounds.",
+    icon: PhotoIcon,
+    iconBg: "bg-pink-50 dark:bg-pink-900",
+    iconFg: "text-pink-700 dark:text-white",
+  },
+  {
+    title: "Favicons",
+    href: "/images/favicons",
+    description: "Generate 16×16, 32×32, and .ico favicons.",
+    icon: GlobeAltIcon,
+    iconBg: "bg-purple-50 dark:bg-purple-900",
+    iconFg: "text-purple-700 dark:text-white",
   },
   {
     title: "App Icon",
-    href: "/app-icon",
+    href: "/images/app-icon",
+    description: "Turn any image into a 1024×1024 app icon.",
     icon: DevicePhoneMobileIcon,
-    iconFg: "text-yellow-700 dark:text-white",
-    iconBg: "bg-yellow-50 dark:bg-yellow-900",
-    description: "Transform any image into a 1024×1024 compressed app icon.",
-  },
-  {
-    title: "Meme Maker (Coming Soon)",
-    href: "/meme",
-    icon: FaceSmileIcon,
-    iconFg: "text-pink-700 dark:text-white",
-    iconBg: "bg-pink-50 dark:bg-pink-900",
-    description: "Create fun memes with base images, overlays, and text (not yet active).",
-  },
-  {
-    title: "About",
-    href: "/about",
-    icon: InformationCircleIcon,
-    iconFg: "text-gray-700 dark:text-white",
-    iconBg: "bg-gray-50 dark:bg-gray-900",
-    description: "Important disclaimers and info about Nocabot.",
+    iconBg: "bg-orange-50 dark:bg-orange-900",
+    iconFg: "text-orange-700 dark:text-white",
   },
 ];
+
+// VIDEO
+const videoActions = [
+  {
+    title: "Compress",
+    href: "/video/compress",
+    description: "Compress large video files to smaller size.",
+    icon: ArrowsPointingInIcon,
+    iconBg: "bg-blue-50 dark:bg-blue-900",
+    iconFg: "text-blue-700 dark:text-white",
+  },
+  {
+    title: "Convert",
+    href: "/video/convert",
+    description: "Change video formats (MP4, MOV, etc.).",
+    icon: ArrowsRightLeftIcon,
+    iconBg: "bg-green-50 dark:bg-green-900",
+    iconFg: "text-green-700 dark:text-white",
+  },
+  {
+    title: "Resize",
+    href: "/video/resize",
+    description: "Trim or crop video to custom dimensions.",
+    icon: ScissorsIcon,
+    iconBg: "bg-amber-50 dark:bg-amber-900",
+    iconFg: "text-amber-700 dark:text-white",
+  },
+  {
+    title: "Transfer",
+    href: "/video/transfer",
+    description: "Generate a share link that expires in 15 mins.",
+    icon: PaperAirplaneIcon,
+    iconBg: "bg-pink-50 dark:bg-pink-900",
+    iconFg: "text-pink-700 dark:text-white",
+  },
+];
+
+// AUDIO
+const audioActions = [
+  {
+    title: "Compress",
+    href: "/audio/compress",
+    description: "Lower audio file size while retaining quality.",
+    icon: ArrowsPointingInIcon,
+    iconBg: "bg-blue-50 dark:bg-blue-900",
+    iconFg: "text-blue-700 dark:text-white",
+  },
+  {
+    title: "Convert",
+    href: "/audio/convert",
+    description: "Switch between MP3, WAV, FLAC, etc.",
+    icon: ArrowsRightLeftIcon,
+    iconBg: "bg-green-50 dark:bg-green-900",
+    iconFg: "text-green-700 dark:text-white",
+  },
+  {
+    title: "Resize",
+    href: "/audio/resize",
+    description: "Trim audio start/end times easily.",
+    icon: ScissorsIcon,
+    iconBg: "bg-amber-50 dark:bg-amber-900",
+    iconFg: "text-amber-700 dark:text-white",
+  },
+  {
+    title: "Frequency",
+    href: "/audio/frequency",
+    description: "Adjust frequency/pitch (example).",
+    icon: AdjustmentsHorizontalIcon,
+    iconBg: "bg-pink-50 dark:bg-pink-900",
+    iconFg: "text-pink-700 dark:text-white",
+  },
+];
+
+// COLOR
+const colorActions = [
+  {
+    title: "Palettes",
+    href: "/color/palettes",
+    description: "Explore & copy color palettes.",
+    icon: PaintBrushIcon,
+    iconBg: "bg-purple-50 dark:bg-purple-900",
+    iconFg: "text-purple-700 dark:text-white",
+  },
+  {
+    title: "Variations",
+    href: "/color/variations",
+    description: "Generate tints & shades from any color.",
+    icon: SwatchIcon,
+    iconBg: "bg-orange-50 dark:bg-orange-900",
+    iconFg: "text-orange-700 dark:text-white",
+  },
+];
+
+// Helper to render each section
+function ActionSection({ title, items, subtitle }) {
+  return (
+    <section className="mt-10">
+      <AuroraText className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+        {title}
+      </AuroraText>
+      <p className="text-sm text-gray-600 dark:text-gray-300">
+        {subtitle}
+      </p>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.map((action) => (
+          <div
+            key={action.title}
+            className="
+              group relative bg-white dark:bg-gray-800 p-6
+              rounded-md shadow
+              hover:bg-gray-50 dark:hover:bg-gray-700
+              transition-colors
+            "
+          >
+            <div
+              className={`
+                inline-flex h-12 w-12 items-center justify-center
+                rounded-lg
+                ${action.iconBg} ${action.iconFg}
+                ring-4 ring-white dark:ring-gray-800
+              `}
+            >
+              <action.icon className="h-6 w-6" />
+            </div>
+            <h3 className="mt-5 text-sm font-semibold text-gray-900 dark:text-gray-100">
+              <Link href={action.href}>
+                <span className="absolute inset-0" aria-hidden="true" />
+                {action.title}
+              </Link>
+            </h3>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {action.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   return (
     <div
       className="
-        mx-auto mt-10 mb-10 w-full
-        sm:w-[95%] md:w-[85%]
-        bg-white dark:bg-gray-800
+        mx-auto mt-10 mb-10
+        w-full sm:w-[95%] md:w-[85%]
         p-12
         rounded-md
-        dark:border-gray-700
         shadow
         font-sans
+        bg-white/90 dark:bg-gray-800/90
       "
     >
-      <h1 className="text-3xl font-bold tracking-tight text-center text-gray-800 dark:text-gray-100">
-        Welcome to <AuroraText className="text-3xl">Nocabot</AuroraText>
+      {/* Title & Subtitle */}
+      <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
+        Welcome to{" "}
+        <AuroraText className="inline-block text-3xl text-gray-800 dark:text-gray-100">
+          Nocabot
+        </AuroraText>
       </h1>
-
       <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
-        A suite of easy-to-use image tools for every workflow.
+        100% free and ad-free, with no sign-ups required. We never store your data
+        longer than it takes to process your request.
       </p>
 
-      <div
-        className="
-          mt-8
-          divide-y divide-gray-200 dark:divide-gray-700
-          overflow-hidden
-          rounded-lg
-          bg-gray-100 dark:bg-gray-700
-          shadow dark:shadow-black/50
-          sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0
-        "
-      >
-        {actions.map((action, idx) => (
-          <div
-            key={action.title}
-            className={classNames(
-              idx === 0 ? "rounded-tl-lg rounded-tr-lg sm:rounded-tr-none" : "",
-              idx === 1 ? "sm:rounded-tr-lg" : "",
-              idx === actions.length - 2 ? "sm:rounded-bl-lg" : "",
-              idx === actions.length - 1
-                ? "rounded-bl-lg rounded-br-lg sm:rounded-bl-none"
-                : "",
-              "group relative bg-white dark:bg-gray-800 p-6 " +
-                "focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 " +
-                "border-b last:border-none border-gray-200 dark:border-gray-700 sm:border-b-0 sm:border-r"
-            )}
-          >
-            <div>
-              <span
-                className={classNames(
-                  action.iconBg,
-                  action.iconFg,
-                  "inline-flex rounded-lg p-3 ring-4 ring-white dark:ring-gray-800"
-                )}
-              >
-                <action.icon className="h-6 w-6" aria-hidden="true" />
-              </span>
-            </div>
+      {/* IMAGES */}
+      <ActionSection
+        title="Images"
+        items={imagesActions}
+        subtitle="Instantly transform your images with these quick tools:"
+      />
 
-            <div className="mt-8">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                <Link href={action.href} className="focus:outline-none">
-                  <span aria-hidden="true" className="absolute inset-0" />
-                  {action.title}
-                </Link>
-              </h3>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {action.description}
-              </p>
-            </div>
+      {/* VIDEO */}
+      <ActionSection
+        title="Video"
+        items={videoActions}
+        subtitle="Manage and optimize video files for easier sharing:"
+      />
 
-            {/* The diagonal arrow in top-right corner */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400"
-            >
-              <svg fill="currentColor" viewBox="0 0 24 24" className="h-6 w-6">
-                <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
-              </svg>
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* AUDIO */}
+      <ActionSection
+        title="Audio"
+        items={audioActions}
+        subtitle="Convert, compress, or trim audio with ease:"
+      />
+
+      {/* COLOR */}
+      <ActionSection
+        title="Color"
+        items={colorActions}
+        subtitle="Generate palettes or create tints & shades in seconds:"
+      />
     </div>
   );
 }

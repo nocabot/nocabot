@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 export default function AboutPage() {
   return (
     <div
@@ -9,31 +11,36 @@ export default function AboutPage() {
         bg-white dark:bg-gray-800
         p-12
         rounded-md
-        border border-gray-200 dark:border-gray-700
-        shadow dark:shadow-black/50
+        shadow
         font-sans
       "
     >
       <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
-        About
+        About Nocabot LLC
       </h1>
-      <p className="mt-1 text-sm text-center text-gray-600 dark:text-gray-400">
-        Important to read before using Nocabot
+      <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
+        Proudly Chicago-based. No ads, no fees. Just useful tools.
       </p>
 
-      <div className="mt-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-left">
+      <div className="mt-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
         <p>
-          Nocabot is provided as-is with no warranties. By using our service, you
-          acknowledge that we are not liable for any direct or indirect damages
-          related to your usage. We do not store or retain any images uploaded
-          by users. All processing happens temporarily on our server, and images
-          are returned immediately.
+          Nocabot LLC is a small Chicago-based company aiming to provide 
+          convenient, no-cost tools and apps without intrusive ads 
+          or data collection. We believe in privacy, simplicity, 
+          and a straightforward user experience.
         </p>
         <p className="mt-4">
-          Rest assured that your data is safe with us. We do not log or save your
-          images or associated data. Nocabot is a small, independent company that
-          does not accept advertisements or payments at this time. Our goal is
-          simply to provide quick and easy image transformations for everyone.
+          Everything is offered on an <strong>as-is</strong> basis—no warranties 
+          or guarantees. By using our services, you acknowledge 
+          that Nocabot LLC is not responsible for any direct or indirect damages. 
+          We do not store or retain your data beyond what is necessary 
+          to process your request.
+        </p>
+        <p className="mt-4">
+          We charge no fees and display no ads—our tools are free 
+          for personal or commercial use. 
+          Thank you for supporting a local Chicago business! 
+          For questions or feedback, please get in touch. We appreciate your support!
         </p>
       </div>
     </div>
