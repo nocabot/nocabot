@@ -262,8 +262,8 @@ export default function LayoutClient({ children }) {
                 </aside>
               )}
 
-            {/* MOBILE TOP BAR */}
-            <div className="md:hidden absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            {/* MOBILE TOP BAR (z-20 to ensure above main) */}
+            <div className="md:hidden z-20 fixed top-0 left-0 right-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-50"
@@ -279,7 +279,12 @@ export default function LayoutClient({ children }) {
             </div>
 
             {/* MAIN CONTENT + flickering grid */}
-            <main className="flex-1 ml-48 relative transition-colors">
+            {/* 
+                - On desktop: margin-left 48 for pinned sidebar
+                - Add pt-16 so there's space under the mobile bar
+                  (only visible when md:hidden is active).
+            */}
+            <main className="flex-1 md:ml-48 relative transition-colors pt-16 md:pt-8">
               {/* Flickering grid behind everything */}
               <div className="pointer-events-none absolute inset-0 -z-10">
                 <FlickeringGrid
@@ -292,18 +297,19 @@ export default function LayoutClient({ children }) {
                 />
               </div>
 
-              <div className="p-4 max-w-7xl mx-auto">{children}</div>
+              {/* Inner wrapper for 90% width on mobile, max-w-7xl on large */}
+              <div className="w-[90%] max-w-7xl mx-auto p-4">{children}</div>
             </main>
 
             {/* MOBILE SIDEBAR OFF-CANVAS */}
             <MobileSidebar
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
               topLevelNav={topLevelNav}
               expandedIndex={expandedIndex}
               setExpandedIndex={setExpandedIndex}
-              toggleDarkMode={toggleDarkMode}
               darkMode={darkMode}
+              toggleDarkMode={toggleDarkMode}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
             />
           </div>
 
@@ -319,13 +325,13 @@ export default function LayoutClient({ children }) {
 
 /** MOBILE SIDEBAR */
 function MobileSidebar({
-  mobileMenuOpen,
-  setMobileMenuOpen,
   topLevelNav,
   expandedIndex,
   setExpandedIndex,
-  toggleDarkMode,
   darkMode,
+  toggleDarkMode,
+  mobileMenuOpen,
+  setMobileMenuOpen,
 }) {
   const pathname = usePathname();
 
@@ -338,7 +344,7 @@ function MobileSidebar({
         className="absolute inset-0 bg-black/50"
         onClick={() => setMobileMenuOpen(false)}
       />
-      <div className="relative w-64 max-w-full bg-white dark:bg-gray-900 flex flex-col shadow-xl dark:shadow-black/50">
+      <div className="relative z-50 w-64 max-w-full bg-white dark:bg-gray-900 flex flex-col shadow-xl dark:shadow-black/50">
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
           <AuroraText className="text-lg font-bold tracking-tight text-gray-800 dark:text-gray-100">
@@ -365,70 +371,69 @@ function MobileSidebar({
               ? item.subItems.some((sub) => sub.href === pathname)
               : item.href === pathname;
 
-            if (!hasSub) {
-              // direct link
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    flex items-center gap-2 px-4 py-3
-                    hover:bg-gray-50 dark:hover:bg-gray-800
-                    transition-colors
-                    ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
-                  `}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            } else {
-              // Submenu
-              return (
-                <div key={item.name}>
-                  <div
+            return (
+              <div key={item.name}>
+                {!hasSub ? (
+                  // Direct link
+                  <Link
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
                     className={`
-                      flex items-center justify-between px-4 py-3 cursor-pointer
+                      flex items-center gap-2 px-4 py-3
                       hover:bg-gray-50 dark:hover:bg-gray-800
                       transition-colors
                       ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
                     `}
-                    onClick={() => setExpandedIndex(isExpanded ? -1 : idx)}
                   >
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-5 w-5" />
-                      <span>{item.name}</span>
+                    <Icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </Link>
+                ) : (
+                  // Submenu
+                  <>
+                    <div
+                      className={`
+                        flex items-center justify-between px-4 py-3 cursor-pointer
+                        hover:bg-gray-50 dark:hover:bg-gray-800
+                        transition-colors
+                        ${isActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                      `}
+                      onClick={() => setExpandedIndex(isExpanded ? -1 : idx)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </div>
+                      <ChevronRightIcon
+                        className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                      />
                     </div>
-                    <ChevronRightIcon
-                      className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                    />
-                  </div>
-                  {isExpanded && (
-                    <div className="ml-8 border-l border-gray-100 dark:border-gray-800">
-                      {item.subItems.map((sub) => {
-                        const subActive = sub.href === pathname;
-                        return (
-                          <Link
-                            key={sub.name}
-                            href={sub.href}
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`
-                              block pl-4 pr-2 py-2 text-sm
-                              hover:bg-gray-50 dark:hover:bg-gray-800
-                              transition-colors
-                              ${subActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
-                            `}
-                          >
-                            {sub.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
+                    {isExpanded && (
+                      <div className="ml-8 border-l border-gray-100 dark:border-gray-800">
+                        {item.subItems.map((sub) => {
+                          const subActive = sub.href === pathname;
+                          return (
+                            <Link
+                              key={sub.name}
+                              href={sub.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`
+                                block pl-4 pr-2 py-2 text-sm
+                                hover:bg-gray-50 dark:hover:bg-gray-800
+                                transition-colors
+                                ${subActive ? "bg-gray-50 dark:bg-gray-800 font-semibold" : ""}
+                              `}
+                            >
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
           })}
         </nav>
 
